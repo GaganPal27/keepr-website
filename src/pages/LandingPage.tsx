@@ -1,4 +1,4 @@
-import { Shield, Smartphone, Radio, MapPin } from 'lucide-react';
+import { Shield, Smartphone, Radio } from 'lucide-react';
 
 export default function LandingPage() {
   return (
