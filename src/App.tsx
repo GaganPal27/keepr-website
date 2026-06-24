@@ -3,6 +3,7 @@ import { Shield } from 'lucide-react';
 import LandingPage from './pages/LandingPage';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
+import ItemFinder from './pages/ItemFinder';
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -53,6 +54,7 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/i/:id" element={<ItemFinder />} />
         </Routes>
       </Layout>
     </Router>
