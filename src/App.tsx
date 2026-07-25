@@ -4,6 +4,7 @@ import LandingPage from './pages/LandingPage';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import ItemFinder from './pages/ItemFinder';
+import CommunityPostFinder from './pages/CommunityPostFinder';
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -55,6 +56,7 @@ function App() {
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/i/:id" element={<ItemFinder />} />
+          <Route path="/p/:id" element={<CommunityPostFinder />} />
         </Routes>
       </Layout>
     </Router>
