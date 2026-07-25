@@ -18,7 +18,7 @@ export default function ItemFinder() {
         // Fetch id and user_id too — needed to create conversation + send push notification
         const { data, error } = await supabase
           .from('items')
-          .select('id, user_id, item_name, category, color, image_url')
+          .select('id, user_id, item_name, category, color, image_url, owner:users(auth_id)')
           .eq('nfc_uid', id)
           .single();
 
@@ -44,6 +44,10 @@ export default function ItemFinder() {
       try {
         const { latitude, longitude, accuracy } = position.coords;
 
+        if (!item.owner?.auth_id) {
+          throw new Error('Could not resolve item owner — owner record missing or malformed.');
+        }
+
         // Log the scan (used for scan history / analytics)
         await supabase.from('nfc_scans').insert({
           nfc_uid: id,
@@ -58,7 +62,7 @@ export default function ItemFinder() {
           .from('conversations')
           .insert({
             item_id: item.id,
-            owner_id: item.user_id,
+            owner_id: item.owner.auth_id,
             finder_user_id: null,
             finder_name: 'Anonymous finder',
             scan_lat: latitude,
@@ -83,7 +87,7 @@ export default function ItemFinder() {
         // Actually send the push notification — this was the missing step before.
         const { error: pushError } = await supabase.functions.invoke('send-push-notification', {
           body: {
-            owner_id: item.user_id,
+            owner_id: item.owner.auth_id,
             conversation_id: conv.id,
             item_name: item.item_name,
             finder_name: 'Anonymous finder',
