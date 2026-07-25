@@ -15,9 +15,10 @@ export default function ItemFinder() {
     async function fetchItem() {
       if (!id) return;
       try {
+        // Fetch id and user_id too — needed to create conversation + send push notification
         const { data, error } = await supabase
           .from('items')
-          .select('item_name, category, color, image_url')
+          .select('id, user_id, item_name, category, color, image_url')
           .eq('nfc_uid', id)
           .single();
 
@@ -42,14 +43,54 @@ export default function ItemFinder() {
     navigator.geolocation.getCurrentPosition(async (position) => {
       try {
         const { latitude, longitude, accuracy } = position.coords;
-        
-        // Insert scan record
+
+        // Log the scan (used for scan history / analytics)
         await supabase.from('nfc_scans').insert({
           nfc_uid: id,
           lat: latitude,
           lng: longitude,
-          accuracy: accuracy
+          accuracy: accuracy,
         });
+
+        // Create a conversation so the owner has something to open in the app.
+        // conv_public_insert policy explicitly allows anonymous finders to do this.
+        const { data: conv, error: convError } = await supabase
+          .from('conversations')
+          .insert({
+            item_id: item.id,
+            owner_id: item.user_id,
+            finder_user_id: null,
+            finder_name: 'Anonymous finder',
+            scan_lat: latitude,
+            scan_lng: longitude,
+          })
+          .select()
+          .single();
+
+        if (convError || !conv) {
+          console.error('Conversation error:', convError);
+          throw convError ?? new Error('Could not create conversation');
+        }
+
+        // Initial message so the owner has context when they open the chat
+        await supabase.from('messages').insert({
+          conversation_id: conv.id,
+          sender_id: null,
+          sender_name: 'Anonymous finder',
+          body: `I found your "${item.item_name}"! Tap to connect with me.`,
+        });
+
+        // Actually send the push notification — this was the missing step before.
+        const { error: pushError } = await supabase.functions.invoke('send-push-notification', {
+          body: {
+            owner_id: item.user_id,
+            conversation_id: conv.id,
+            item_name: item.item_name,
+            finder_name: 'Anonymous finder',
+            location_label: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+          },
+        });
+        if (pushError) console.error('Push notification failed:', pushError);
 
         setSuccess(true);
       } catch (err) {
@@ -91,10 +132,10 @@ export default function ItemFinder() {
     <div className="container animate-fade-up" style={{ padding: '40px 0', maxWidth: '500px' }}>
       <div className="glass-panel" style={{ textAlign: 'center' }}>
         {item.image_url ? (
-          <img 
-            src={item.image_url} 
-            alt={item.item_name} 
-            style={{ width: '120px', height: '120px', borderRadius: '50%', objectFit: 'cover', margin: '0 auto 20px', border: '3px solid rgba(99, 102, 241, 0.5)' }} 
+          <img
+            src={item.image_url}
+            alt={item.item_name}
+            style={{ width: '120px', height: '120px', borderRadius: '50%', objectFit: 'cover', margin: '0 auto 20px', border: '3px solid rgba(99, 102, 241, 0.5)' }}
           />
         ) : (
           <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: 'rgba(99, 102, 241, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', border: '2px dashed rgba(99, 102, 241, 0.3)' }}>
@@ -112,7 +153,7 @@ export default function ItemFinder() {
             <CheckCircle size={40} color="#22c55e" style={{ margin: '0 auto 16px' }} />
             <h3 style={{ color: '#22c55e', fontSize: '1.25rem', marginBottom: '8px' }}>Owner Notified!</h3>
             <p className="text-slate-400" style={{ fontSize: '0.9rem' }}>
-              Thank you for helping! The owner has been sent the location of their item. You can safely leave the item where you found it or hand it to a nearby lost & found desk.
+              Thank you for helping! The owner has been sent a notification. You can safely leave the item where you found it or hand it to a nearby lost & found desk.
             </p>
           </div>
         ) : (
@@ -124,7 +165,7 @@ export default function ItemFinder() {
               </p>
             </div>
 
-            <button 
+            <button
               onClick={handleShareLocation}
               disabled={sharing}
               className="btn btn-primary"
