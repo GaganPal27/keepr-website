@@ -42,7 +42,7 @@ export default function ItemFinder() {
     setSharing(true);
     navigator.geolocation.getCurrentPosition(async (position) => {
       try {
-        const { latitude, longitude, accuracy } = position.coords;
+        const { latitude, longitude } = position.coords;
 
         // item.user_id is the profile-table id; conversations.owner_id and
         // push_tokens.user_id both need the AUTH id instead — resolve it via
