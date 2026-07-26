@@ -59,32 +59,33 @@ export default function ItemFinder() {
           nfc_uid: id,
           lat: latitude,
           lng: longitude,
-          accuracy: accuracy,
         });
 
         // Create a conversation so the owner has something to open in the app.
         // conv_public_insert policy explicitly allows anonymous finders to do this.
-        const { data: conv, error: convError } = await supabase
+        // We generate the ID here and omit .select() because anonymous users cannot 
+        // SELECT the row after insert due to RLS policies.
+        const convId = crypto.randomUUID();
+        const { error: convError } = await supabase
           .from('conversations')
           .insert({
+            id: convId,
             item_id: item.id,
             owner_id: ownerAuthId,
             finder_user_id: null,
             finder_name: 'Anonymous finder',
             scan_lat: latitude,
             scan_lng: longitude,
-          })
-          .select()
-          .single();
+          });
 
-        if (convError || !conv) {
+        if (convError) {
           console.error('Conversation error:', convError);
           throw convError ?? new Error('Could not create conversation');
         }
 
         // Initial message so the owner has context when they open the chat
         await supabase.from('messages').insert({
-          conversation_id: conv.id,
+          conversation_id: convId,
           sender_id: null,
           sender_name: 'Anonymous finder',
           body: `I found your "${item.item_name}"! Tap to connect with me.`,
@@ -94,7 +95,7 @@ export default function ItemFinder() {
         const { error: pushError } = await supabase.functions.invoke('send-push-notification', {
           body: {
             owner_id: ownerAuthId,
-            conversation_id: conv.id,
+            conversation_id: convId,
             item_name: item.item_name,
             finder_name: 'Anonymous finder',
             location_label: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
