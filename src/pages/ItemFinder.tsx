@@ -91,6 +91,22 @@ export default function ItemFinder() {
           body: `I found your "${item.item_name}"! Tap to connect with me.`,
         });
 
+        // In-app notification row — this was missing entirely before, which is
+        // why the Notifications tab stayed empty for web-triggered scans even
+        // when the conversation itself was created successfully.
+        await supabase.from('notifications').insert({
+          user_id: ownerAuthId,
+          type: 'nfc_tap',
+          message: `Someone found your "${item.item_name}"${latitude ? ` near ${latitude.toFixed(4)}, ${longitude.toFixed(4)}` : ''}`,
+          metadata: {
+            item_id: item.id,
+            conversation_id: convId,
+            finder_name: 'Anonymous finder',
+            lat: latitude,
+            lng: longitude,
+          },
+        });
+
         // Actually send the push notification — this was the missing step before.
         const { error: pushError } = await supabase.functions.invoke('send-push-notification', {
           body: {
