@@ -94,11 +94,14 @@ export default function ItemFinder() {
         // In-app notification row — this was missing entirely before, which is
         // why the Notifications tab stayed empty for web-triggered scans even
         // when the conversation itself was created successfully.
-        await supabase.from('notifications').insert({
-          user_id: ownerAuthId,
-          type: 'nfc_tap',
-          message: `Someone found your "${item.item_name}"${latitude ? ` near ${latitude.toFixed(4)}, ${longitude.toFixed(4)}` : ''}`,
-          metadata: {
+        // create_item_notification is SECURITY DEFINER — bypasses RLS (anonymous users
+        // cannot directly insert notifications for other users) and resolves ownerAuthId
+        // (auth UUID) to the correct profile UUID (users.id) for the FK.
+        await supabase.rpc('create_item_notification', {
+          p_owner_id: ownerAuthId,
+          p_type: 'nfc_tap',
+          p_message: `Someone found your "${item.item_name}"${latitude ? ` near ${latitude.toFixed(4)}, ${longitude.toFixed(4)}` : ''}`,
+          p_metadata: {
             item_id: item.id,
             conversation_id: convId,
             finder_name: 'Anonymous finder',
