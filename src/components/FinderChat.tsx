@@ -243,7 +243,7 @@ export default function FinderChat({ conversationId, item }: { conversationId: s
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSend} style={{ padding: '16px 24px', borderTop: '1px solid var(--border-glass)', display: 'flex', gap: '12px', background: 'var(--bg-dark)', alignItems: 'center' }}>
+      <form onSubmit={handleSend} style={{ padding: '12px 16px', borderTop: '1px solid var(--border-glass)', display: 'flex', gap: '8px', background: 'var(--bg-dark)', alignItems: 'center' }}>
         <input 
           type="file" 
           accept="image/*" 
@@ -255,7 +255,7 @@ export default function FinderChat({ conversationId, item }: { conversationId: s
           type="button" 
           onClick={() => fileInputRef.current?.click()} 
           disabled={uploading}
-          style={{ background: 'rgba(99, 102, 241, 0.1)', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px', borderRadius: '50%', transition: 'background 0.2s' }}
+          style={{ flexShrink: 0, background: 'rgba(99, 102, 241, 0.1)', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px', borderRadius: '50%', transition: 'background 0.2s' }}
         >
           {uploading ? <Loader2 size={22} className="animate-spin" /> : <ImageIcon size={22} />}
         </button>
@@ -263,10 +263,10 @@ export default function FinderChat({ conversationId, item }: { conversationId: s
           type="text" 
           value={newMessage}
           onChange={e => setNewMessage(e.target.value)}
-          placeholder="Message owner anonymously..."
-          style={{ flex: 1, background: '#f8fafc', border: '1px solid var(--border-glass)', borderRadius: '24px', padding: '12px 20px', color: 'var(--text-primary)', outline: 'none', fontSize: '0.95rem' }}
+          placeholder="Message..."
+          style={{ flex: 1, minWidth: 0, background: '#f8fafc', border: '1px solid var(--border-glass)', borderRadius: '24px', padding: '12px 16px', color: 'var(--text-primary)', outline: 'none', fontSize: '0.95rem' }}
         />
-        <button type="submit" disabled={!newMessage.trim() && !uploading} style={{ background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))', border: 'none', width: '46px', height: '46px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', cursor: newMessage.trim() ? 'pointer' : 'not-allowed', opacity: newMessage.trim() ? 1 : 0.5, boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)' }}>
+        <button type="submit" disabled={!newMessage.trim() && !uploading} style={{ flexShrink: 0, background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))', border: 'none', width: '46px', height: '46px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', cursor: newMessage.trim() ? 'pointer' : 'not-allowed', opacity: newMessage.trim() ? 1 : 0.5, boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)' }}>
           <Send size={20} style={{ marginLeft: '-2px' }} />
         </button>
       </form>
