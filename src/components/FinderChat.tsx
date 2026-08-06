@@ -188,22 +188,27 @@ export default function FinderChat({ conversationId, item }: { conversationId: s
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '600px', maxHeight: '70vh', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)', marginTop: '24px' }}>
+    <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', height: '600px', maxHeight: '70vh', padding: 0, overflow: 'hidden', marginTop: '24px' }}>
       
       {/* Header */}
-      <div style={{ padding: '16px', background: 'rgba(99, 102, 241, 0.1)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ padding: '16px 24px', background: 'var(--accent-glow)', borderBottom: '1px solid var(--border-glass)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h3 style={{ margin: 0, fontSize: '1rem', color: '#f8fafc' }}>Chat with Owner</h3>
-          <p style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8' }}>Connecting anonymously</p>
+          <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)' }}>Chat with Owner</h3>
+          <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--accent-primary)', fontWeight: '600' }}>Connecting anonymously...</p>
         </div>
-        <button onClick={handleShareLink} style={{ background: 'transparent', border: 'none', color: '#6366f1', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', fontWeight: 'bold' }}>
+        <button onClick={handleShareLink} style={{ background: 'transparent', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', fontWeight: 'bold' }}>
           {typeof navigator.share === 'function' ? <Share2 size={16} /> : <Copy size={16} />}
-          Save Link
+          Share Link
         </button>
       </div>
 
+      {/* Trust Copy */}
+      <div style={{ padding: '12px 24px', background: 'rgba(34, 197, 94, 0.05)', borderBottom: '1px solid var(--border-glass)', fontSize: '0.8rem', color: '#15803d', textAlign: 'center' }}>
+        Your identity is shared anonymously. The owner's identity is fully protected.
+      </div>
+
       {/* Messages */}
-      <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {loading && messages.length === 0 ? (
           <p style={{ textAlign: 'center', color: '#94a3b8' }}>Loading messages...</p>
         ) : (
@@ -212,21 +217,23 @@ export default function FinderChat({ conversationId, item }: { conversationId: s
             return (
               <div key={msg.id} style={{ alignSelf: isMine ? 'flex-end' : 'flex-start', maxWidth: '85%' }}>
                 <div style={{ 
-                  background: isMine ? '#6366f1' : 'rgba(255,255,255,0.1)', 
-                  padding: '10px 14px', 
+                  background: isMine ? 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))' : '#f1f5f9', 
+                  padding: '12px 16px', 
                   borderRadius: '16px', 
                   borderBottomRightRadius: isMine ? '4px' : '16px',
                   borderBottomLeftRadius: !isMine ? '4px' : '16px',
-                  color: '#fff',
+                  color: isMine ? '#fff' : 'var(--text-primary)',
                   fontSize: '0.95rem',
-                  lineHeight: '1.4'
+                  lineHeight: '1.4',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                 }}>
                   {msg.image_url ? (
                     <img src={msg.image_url} alt="Sent photo" style={{ width: '100%', borderRadius: '8px', marginBottom: msg.body && msg.body !== 'Sent a photo' ? '8px' : 0 }} />
                   ) : null}
                   {(!msg.image_url || (msg.body && msg.body !== 'Sent a photo')) && msg.body}
                 </div>
-                <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '4px', textAlign: isMine ? 'right' : 'left' }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px', textAlign: isMine ? 'right' : 'left' }}>
+                  {!isMine && <span style={{fontWeight: 600, marginRight: 4}}>{msg.sender_name}</span>}
                   {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
               </div>
@@ -236,7 +243,7 @@ export default function FinderChat({ conversationId, item }: { conversationId: s
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSend} style={{ padding: '16px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: '10px', background: 'rgba(0,0,0,0.2)', alignItems: 'center' }}>
+      <form onSubmit={handleSend} style={{ padding: '16px 24px', borderTop: '1px solid var(--border-glass)', display: 'flex', gap: '12px', background: 'var(--bg-dark)', alignItems: 'center' }}>
         <input 
           type="file" 
           accept="image/*" 
@@ -248,19 +255,19 @@ export default function FinderChat({ conversationId, item }: { conversationId: s
           type="button" 
           onClick={() => fileInputRef.current?.click()} 
           disabled={uploading}
-          style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px' }}
+          style={{ background: 'rgba(99, 102, 241, 0.1)', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px', borderRadius: '50%', transition: 'background 0.2s' }}
         >
-          {uploading ? <Loader2 size={24} className="animate-spin" /> : <ImageIcon size={24} />}
+          {uploading ? <Loader2 size={22} className="animate-spin" /> : <ImageIcon size={22} />}
         </button>
         <input 
           type="text" 
           value={newMessage}
           onChange={e => setNewMessage(e.target.value)}
           placeholder="Message owner anonymously..."
-          style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', padding: '12px 16px', color: '#fff', outline: 'none', fontSize: '0.95rem' }}
+          style={{ flex: 1, background: '#f8fafc', border: '1px solid var(--border-glass)', borderRadius: '24px', padding: '12px 20px', color: 'var(--text-primary)', outline: 'none', fontSize: '0.95rem' }}
         />
-        <button type="submit" disabled={!newMessage.trim() && !uploading} style={{ background: '#6366f1', border: 'none', width: '44px', height: '44px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', cursor: newMessage.trim() ? 'pointer' : 'not-allowed', opacity: newMessage.trim() ? 1 : 0.5 }}>
-          <Send size={18} style={{ marginLeft: '-2px' }} />
+        <button type="submit" disabled={!newMessage.trim() && !uploading} style={{ background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))', border: 'none', width: '46px', height: '46px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', cursor: newMessage.trim() ? 'pointer' : 'not-allowed', opacity: newMessage.trim() ? 1 : 0.5, boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)' }}>
+          <Send size={20} style={{ marginLeft: '-2px' }} />
         </button>
       </form>
     </div>

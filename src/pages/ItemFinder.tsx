@@ -96,7 +96,7 @@ export default function ItemFinder() {
           conversation_id: convId,
           sender_id: null,
           sender_name: 'Anonymous finder',
-          body: `I found your "${item.item_name}"! Tap to connect with me.`,
+          body: `I found your "${item.item_name}"! Text to connect with me.`,
         });
 
         // In-app notification row — this was missing entirely before, which is
