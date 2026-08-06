@@ -99,6 +99,15 @@ export default function ItemFinder() {
           body: `I found your "${item.item_name}"! Text to connect with me.`,
         });
 
+        if (latitude && longitude) {
+          await supabase.from('messages').insert({
+            conversation_id: convId,
+            sender_id: null,
+            sender_name: 'System',
+            body: `📍 Location shared:\nhttps://www.google.com/maps?q=${latitude.toFixed(6)},${longitude.toFixed(6)}`,
+          });
+        }
+
         // In-app notification row — this was missing entirely before, which is
         // why the Notifications tab stayed empty for web-triggered scans even
         // when the conversation itself was created successfully.
@@ -125,7 +134,7 @@ export default function ItemFinder() {
             conversation_id: convId,
             item_name: item.item_name,
             finder_name: 'Anonymous finder',
-            location_label: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+            location_label: `📍 Location shared:\nhttps://www.google.com/maps?q=${latitude.toFixed(6)},${longitude.toFixed(6)}`,
           },
         });
         if (pushError) console.error('Push notification failed:', pushError);
