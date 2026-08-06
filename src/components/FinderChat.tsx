@@ -171,7 +171,7 @@ export default function FinderChat({ conversationId, item }: { conversationId: s
 
   const handleShareLink = async () => {
     const url = window.location.href;
-    if (navigator.share) {
+    if (typeof navigator.share === 'function') {
       try {
         await navigator.share({
           title: `Chat with ${item.item_name} Owner`,
@@ -197,7 +197,7 @@ export default function FinderChat({ conversationId, item }: { conversationId: s
           <p style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8' }}>Connecting anonymously</p>
         </div>
         <button onClick={handleShareLink} style={{ background: 'transparent', border: 'none', color: '#6366f1', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', fontWeight: 'bold' }}>
-          {navigator.share ? <Share2 size={16} /> : <Copy size={16} />}
+          {typeof navigator.share === 'function' ? <Share2 size={16} /> : <Copy size={16} />}
           Save Link
         </button>
       </div>
