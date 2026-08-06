@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Shield, MapPin, CheckCircle } from 'lucide-react';
+import FinderChat from '../components/FinderChat';
 
 export default function ItemFinder() {
   const { id } = useParams<{ id: string }>();
@@ -10,6 +11,7 @@ export default function ItemFinder() {
   const [error, setError] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchItem() {
@@ -24,6 +26,12 @@ export default function ItemFinder() {
 
         if (error) throw error;
         setItem(data);
+
+        // Check for existing conversation for this item
+        const savedConvId = localStorage.getItem(`keepr_chat_${id}`);
+        if (savedConvId) {
+          setActiveConversationId(savedConvId);
+        }
       } catch (err: any) {
         setError("This item isn't registered or the tag is invalid.");
       } finally {
@@ -122,6 +130,8 @@ export default function ItemFinder() {
         });
         if (pushError) console.error('Push notification failed:', pushError);
 
+        localStorage.setItem(`keepr_chat_${id}`, convId);
+        setActiveConversationId(convId);
         setSuccess(true);
       } catch (err) {
         alert("Failed to notify the owner. Please try again.");
@@ -178,12 +188,14 @@ export default function ItemFinder() {
           {item.color} • {item.category}
         </p>
 
-        {success ? (
+        {activeConversationId ? (
+          <FinderChat conversationId={activeConversationId} item={item} />
+        ) : success ? (
           <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.2)', borderRadius: '16px', padding: '24px' }}>
             <CheckCircle size={40} color="#22c55e" style={{ margin: '0 auto 16px' }} />
             <h3 style={{ color: '#22c55e', fontSize: '1.25rem', marginBottom: '8px' }}>Owner Notified!</h3>
             <p className="text-slate-400" style={{ fontSize: '0.9rem' }}>
-              Thank you for helping! The owner has been sent a notification. You can safely leave the item where you found it or hand it to a nearby lost & found desk.
+              Thank you for helping! The owner has been sent a notification.
             </p>
           </div>
         ) : (
@@ -205,7 +217,7 @@ export default function ItemFinder() {
               {sharing ? 'Locating...' : 'Help return it — Share location'}
             </button>
             <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '16px' }}>
-              Only your approximate area is shared. Your identity remains 100% anonymous.
+              Only your approximate area is shared. Your identity remains 100% anonymous. The owner's identity is also fully protected.
             </p>
           </>
         )}
