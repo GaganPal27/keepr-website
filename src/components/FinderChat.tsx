@@ -131,9 +131,9 @@ export default function FinderChat({ conversationId, item }: { conversationId: s
       if (msgError) throw msgError;
       
       fetchMessages();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Upload failed:', err);
-      alert('Failed to upload photo. Please try again.');
+      alert(`Upload failed: ${err?.message || err?.error_description || JSON.stringify(err)}`);
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -164,7 +164,7 @@ export default function FinderChat({ conversationId, item }: { conversationId: s
     });
 
     if (error) {
-      alert('Failed to send message');
+      alert(`Failed to send message: ${error.message || error.code || JSON.stringify(error)}`);
       fetchMessages(); // revert optimistic update
     }
   };
