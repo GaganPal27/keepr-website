@@ -32,11 +32,16 @@ export default function ItemFinder() {
         if (savedConvId) {
           // Verify the conversation still exists in the DB via RPC
           // (anonymous users can't SELECT conversations directly due to RLS)
-          const { data: convCheck } = await supabase
-            .rpc('get_conversation_messages', { p_conversation_id: savedConvId })
-            .limit(1);
-          
-          if (convCheck !== null) {
+          const { data: convCheck, error: checkError } = await supabase
+            .rpc('get_conversation_messages', { p_conversation_id: savedConvId });
+
+          // A Postgres function finding zero rows returns [] (empty array),
+          // not null — `convCheck !== null` was always true regardless of
+          // whether the conversation actually existed, which is why stale
+          // localStorage entries (e.g. from earlier testing against a since
+          // reset database) were being "resumed" and then failing with a
+          // foreign key violation on the first message send.
+          if (!checkError && Array.isArray(convCheck) && convCheck.length > 0) {
             // Conversation is valid — resume it
             setActiveConversationId(savedConvId);
           } else {
