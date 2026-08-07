@@ -27,10 +27,22 @@ export default function ItemFinder() {
         if (error) throw error;
         setItem(data);
 
-        // Check for existing conversation for this item
+        // Check for existing conversation for this item in localStorage
         const savedConvId = localStorage.getItem(`keepr_chat_${id}`);
         if (savedConvId) {
-          setActiveConversationId(savedConvId);
+          // Verify the conversation still exists in the DB via RPC
+          // (anonymous users can't SELECT conversations directly due to RLS)
+          const { data: convCheck } = await supabase
+            .rpc('get_conversation_messages', { p_conversation_id: savedConvId })
+            .limit(1);
+          
+          if (convCheck !== null) {
+            // Conversation is valid — resume it
+            setActiveConversationId(savedConvId);
+          } else {
+            // Conversation no longer exists — clear stale localStorage and let user start fresh
+            localStorage.removeItem(`keepr_chat_${id}`);
+          }
         }
       } catch (err: any) {
         setError("This item isn't registered or the tag is invalid.");
