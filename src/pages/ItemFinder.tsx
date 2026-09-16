@@ -1,28 +1,32 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Shield, MapPin, CheckCircle } from 'lucide-react';
+import { Shield, MapPin, CheckCircle, Tag } from 'lucide-react';
 import FinderChat from '../components/FinderChat';
 
 export default function ItemFinder() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [item, setItem] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
   const [success, setSuccess] = useState(false);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [manualCode, setManualCode] = useState('');
+  const [manualError, setManualError] = useState('');
 
   useEffect(() => {
     async function fetchItem() {
       if (!id) return;
       try {
-        // Fetch id and user_id too — needed to create conversation + send push notification
+        // OR query: works whether someone scanned the NFC chip or the QR code —
+        // both nfc_uid and qr_id point to the same URL pattern /i/{id}.
         const { data, error } = await supabase
           .from('items')
           .select('id, user_id, item_name, category, color, image_url')
-          .eq('nfc_uid', id)
-          .single();
+          .or(`nfc_uid.eq.${id},qr_id.eq.${id}`)
+          .maybeSingle();
 
         if (error) throw error;
         setItem(data);
@@ -246,6 +250,80 @@ export default function ItemFinder() {
               Only your approximate area is shared. Your identity remains 100% anonymous. The owner's identity is also fully protected.
             </p>
           </>
+        )}
+      </div>
+
+      {/* Manual entry fallback — for damaged/scratched QR codes or poor camera conditions */}
+      <div style={{
+        marginTop: '24px',
+        padding: '20px',
+        background: 'rgba(255,255,255,0.04)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: '16px',
+        textAlign: 'center',
+      }}>
+        <Tag size={16} color="#64748b" style={{ margin: '0 auto 8px' }} />
+        <p style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '12px' }}>
+          QR code not scanning? Type the tag code manually.
+        </p>
+        <div style={{ display: 'flex', gap: '8px', maxWidth: '320px', margin: '0 auto' }}>
+          <input
+            type="text"
+            value={manualCode}
+            onChange={(e) => {
+              setManualCode(e.target.value.toUpperCase());
+              setManualError('');
+            }}
+            placeholder="KEEP-XXXXXXXX"
+            maxLength={13}
+            style={{
+              flex: 1,
+              background: 'rgba(255,255,255,0.06)',
+              border: `1px solid ${manualError ? '#e11d48' : 'rgba(255,255,255,0.12)'}`,
+              borderRadius: '10px',
+              padding: '10px 14px',
+              color: '#f8fafc',
+              fontSize: '0.875rem',
+              fontFamily: 'monospace',
+              letterSpacing: '0.05em',
+              outline: 'none',
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                const code = manualCode.trim().toUpperCase();
+                if (/^KEEP-[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{8}$/.test(code)) {
+                  navigate(`/i/${code}`);
+                } else {
+                  setManualError('Invalid format — should be KEEP- followed by 8 characters.');
+                }
+              }
+            }}
+          />
+          <button
+            onClick={() => {
+              const code = manualCode.trim().toUpperCase();
+              if (/^KEEP-[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{8}$/.test(code)) {
+                navigate(`/i/${code}`);
+              } else {
+                setManualError('Invalid format — should be KEEP- followed by 8 characters.');
+              }
+            }}
+            style={{
+              background: '#6366f1',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '10px',
+              padding: '10px 16px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+            }}
+          >
+            Go
+          </button>
+        </div>
+        {manualError && (
+          <p style={{ color: '#e11d48', fontSize: '0.75rem', marginTop: '8px' }}>{manualError}</p>
         )}
       </div>
     </div>
